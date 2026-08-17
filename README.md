@@ -11,7 +11,7 @@ A tiny Windows desktop player for [Radio Swiss Classic](https://www.radioswisscl
 
 ## Install
 
-Download `RadioSwissClassicPlayer-Setup-x.y.z.exe` from the [releases page](../../releases) and run it — it installs per-user with no admin rights required.
+Download `RadioSwissClassicPlayer-Setup-x.y.z.exe` from the [releases page](../../releases) and run it, it installs per-user with no admin rights required.
 
 ## Development
 
@@ -42,7 +42,7 @@ assets/       Logo and app icon
 
 ## Credits
 
-- Streams and track metadata: [SRG SSR](https://www.srgssr.ch/en) — Radio Swiss Classic
+- Streams and track metadata: [SRG SSR](https://www.srgssr.ch/en) - Radio Swiss Classic
 - This project is fan-made and not affiliated with SRG SSR. if you wish me to remove this repo please reach out in issues and i will promptly remove this, sorry !
 
 ## License
