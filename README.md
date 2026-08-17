@@ -43,7 +43,7 @@ assets/       Logo and app icon
 ## Credits
 
 - Streams and track metadata: [SRG SSR](https://www.srgssr.ch/en) — Radio Swiss Classic
-- This project is fan-made and not affiliated with SRG SSR.
+- This project is fan-made and not affiliated with SRG SSR. if you wish me to remove this repo please reach out in issues and i will promptly remove this, sorry !
 
 ## License
 
