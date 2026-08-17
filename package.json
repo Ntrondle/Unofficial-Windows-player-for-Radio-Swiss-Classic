@@ -1,0 +1,49 @@
+{
+  "name": "radio-swiss-classic-player",
+  "version": "1.0.0",
+  "description": "Tiny desktop player for Radio Swiss Classic",
+  "author": "Nico",
+  "license": "GPL-3.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "io.github.nico.radio-swiss-classic-player",
+    "productName": "Radio Swiss Classic Player",
+    "copyright": "Copyright (c) Nico — streams and metadata by SRG SSR",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "track.js",
+      "index.html",
+      "style.css",
+      "assets/icon.png",
+      "assets/logo.png"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "artifactName": "RadioSwissClassicPlayer-Setup-${version}.${ext}"
+    }
+  }
+}
