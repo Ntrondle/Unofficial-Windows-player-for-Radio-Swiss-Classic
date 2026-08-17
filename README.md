@@ -5,7 +5,8 @@ A tiny Windows desktop player for [Radio Swiss Classic](https://www.radioswisscl
 ## Features
 
 - Compact single-column window (~300 x 450): logo, currently playing title and artist, play/stop button, volume slider
-- Live track metadata, refreshed every 20 seconds from the Radio Swiss Classic playlist
+- Language selector (DE / FR / IT): switches the stream host language and localizes track titles
+- Live track metadata via the SRG SSR playlist API, refreshed every 20 seconds
 - Play/stop streaming via the official SRG SSR stream (AAC 96 kbps)
 - Volume level is remembered between sessions
 
@@ -31,10 +32,9 @@ The NSIS installer is written to `dist/`.
 ## Project structure
 
 ```
-main.js       Electron main process, window creation, metadata polling
+main.js       Electron main process, window creation, SRG SSR playlist API polling
 preload.js    Secure bridge exposing the track updates to the renderer
-renderer.js   Stream playback and UI logic
-track.js      Playlist parser, current-track selection (Europe/Zurich)
+renderer.js   Stream playback, language selection and UI logic
 index.html    App markup
 style.css     App styling
 assets/       Logo and app icon

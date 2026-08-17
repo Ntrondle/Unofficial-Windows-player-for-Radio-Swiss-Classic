@@ -72,6 +72,37 @@ main {
   text-overflow: ellipsis;
 }
 
+#lang-row {
+  display: flex;
+  gap: 6px;
+}
+
+.lang-btn {
+  width: 34px;
+  height: 22px;
+  border: 1px solid #2e3540;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.lang-btn:hover {
+  color: var(--text);
+}
+
+.lang-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
 #play-stop {
   width: 54px;
   height: 54px;

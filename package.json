@@ -1,6 +1,6 @@
 {
   "name": "radio-swiss-classic-player",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Tiny desktop player for Radio Swiss Classic",
   "author": "Nico",
   "license": "GPL-3.0",
@@ -24,7 +24,6 @@
       "main.js",
       "preload.js",
       "renderer.js",
-      "track.js",
       "index.html",
       "style.css",
       "assets/icon.png",
