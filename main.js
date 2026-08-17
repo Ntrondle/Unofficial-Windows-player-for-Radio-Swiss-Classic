@@ -9,6 +9,10 @@ const CHANNELS = {
 }
 const POLL_MS = 20000
 
+app.disableHardwareAcceleration()
+app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
+app.commandLine.appendSwitch('in-process-gpu')
+
 let win = null
 let lang = 'de'
 let fetchGen = 0
@@ -49,6 +53,9 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
+      spellcheck: false,
+      devTools: false,
       preload: path.join(__dirname, 'preload.js')
     }
   })
