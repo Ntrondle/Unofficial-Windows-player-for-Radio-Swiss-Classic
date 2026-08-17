@@ -2,8 +2,6 @@
 
 A tiny Windows desktop player for [Radio Swiss Classic](https://www.radioswissclassic.ch/en/), built with Electron.
 
-![window layout](assets/icon.png)
-
 ## Features
 
 - Compact single-column window (~300 x 450): logo, currently playing title and artist, play/stop button, volume slider
