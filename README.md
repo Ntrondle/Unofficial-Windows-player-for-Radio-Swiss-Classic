@@ -1,6 +1,6 @@
 # Radio Swiss Classic Player
 
-A tiny Windows desktop player for [Radio Swiss Classic](https://www.radioswissclassic.ch/en/), built with Electron.
+A tiny desktop player for [Radio Swiss Classic](https://www.radioswissclassic.ch/en/) for Windows and macOS, built with Electron.
 
 ## Features
 
@@ -12,7 +12,15 @@ A tiny Windows desktop player for [Radio Swiss Classic](https://www.radioswisscl
 
 ## Install
 
+### Windows
+
 Download `RadioSwissClassicPlayer-Setup-x.y.z.exe` from the [releases page](../../releases) and run it, it installs per-user with no admin rights required.
+
+### macOS
+
+Download `RadioSwissClassicPlayer-x.y.z-universal.dmg` from the [releases page](../../releases) (works on both Intel and Apple Silicon Macs), open it and drag the app to `Applications`.
+
+The app is not code-signed with a developer certificate, so the first launch requires right-clicking the app and choosing **Open** (or `xattr -dr com.apple.quarantine /Applications/Radio\ Swiss\ Classic\ Player.app` after moving it out of the DMG).
 
 ## Development
 
@@ -21,13 +29,14 @@ npm install
 npm start
 ```
 
-## Build the installer
+## Build the installers
 
 ```bash
-npm run build
+npm run build:win   # NSIS installer -> dist/
+npm run build:mac   # universal DMG -> dist/
 ```
 
-The NSIS installer is written to `dist/`.
+Pushing a `v*` tag also builds both installers on GitHub Actions and attaches them to a GitHub release.
 
 ## Project structure
 
