@@ -1,4 +1,4 @@
-const { app, BrowserWindow, net, ipcMain } = require('electron')
+const { app, BrowserWindow, net, ipcMain, session } = require('electron')
 const path = require('path')
 
 const GQL_ENDPOINT = 'https://ssatr.playlist-api.deliver.media/graphql'
@@ -71,6 +71,9 @@ ipcMain.on('set-lang', (_event, newLang) => {
 })
 
 app.whenReady().then(() => {
+  // Playback needs no device access. Reject capture and every other permission.
+  session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+  session.defaultSession.setPermissionCheckHandler(() => false)
   createWindow()
   fetchTrack()
   setInterval(fetchTrack, POLL_MS)

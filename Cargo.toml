@@ -1,0 +1,20 @@
+[package]
+name = "radio-swiss-classic"
+version = "2.0.0"
+edition = "2021"
+license = "GPL-3.0-only"
+description = "Native macOS Radio Swiss Classic player"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColor", "objc2"] }
+objc2-foundation = { version = "0.3", features = ["NSGeometry", "NSString", "NSObject"] }
+curl = { version = "0.4", default-features = false, features = ["force-system-lib-on-osx"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

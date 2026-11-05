@@ -18,9 +18,6 @@ jobs:
           - os: windows-latest
             build-args: --win
             artifact: dist/RadioSwissClassicPlayer-Setup-*.exe
-          - os: macos-latest
-            build-args: --mac
-            artifact: dist/*.dmg
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -42,5 +39,25 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ${{ matrix.artifact }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+
+  native-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - run: cargo fmt --check
+      - run: cargo clippy --locked -- -D warnings
+      - name: Build native universal app
+        run: scripts/build-macos.sh --universal
+      - name: Package
+        run: ditto -c -k --sequesterRsrc --keepParent "dist/Radio Swiss Classic.app" dist/RadioSwissClassic-native-universal.zip
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/RadioSwissClassic-native-universal.zip
           fail_on_unmatched_files: true
           generate_release_notes: true
