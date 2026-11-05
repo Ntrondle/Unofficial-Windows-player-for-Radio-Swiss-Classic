@@ -490,7 +490,6 @@ pub fn run() {
         });
         paint_languages(&languages, language);
         let button: Obj = msg_send![class!(NSButton), buttonWithTitle: &*NSString::from_str(""), target: &*controller, action: sel!(toggle:)];
-        let _: () = msg_send![&*button, setFrame: rect(123., 65., 54., 54.)];
         let _: () = msg_send![&*button, setBordered: Bool::NO];
         let _: () = msg_send![&*button, setWantsLayer: Bool::YES];
         let layer: Obj = msg_send![&*button, layer];
@@ -501,7 +500,11 @@ pub fn run() {
         let _: () = msg_send![&*button, setContentTintColor: &*white];
         set_playing(&button, false);
         let _: () = msg_send![&*content, addSubview: &*button];
-        let status = label(&content, "", rect(12., 42., 276., 18.), 10.);
+        // Reserve the gap above the circle for connection and error messages.
+        let status = label(&content, "", rect(12., 115.5, 276., 14.), 10.);
+        let _: () = msg_send![&*status, setMaximumNumberOfLines: 1isize];
+        let status_color = color(154., 160., 166.);
+        let _: () = msg_send![&*status, setTextColor: &*status_color];
         let slider: Allocated<AnyObject> = msg_send![class!(NSSlider), alloc];
         let slider: Obj = msg_send![slider, initWithFrame: rect(38., 14., 224., 24.)];
         let _: () = msg_send![&*slider, setAccessibilityLabel: &*NSString::from_str("Volume")];
@@ -512,6 +515,8 @@ pub fn run() {
         let _: () = msg_send![&*slider, setTarget: &*controller];
         let _: () = msg_send![&*slider, setAction: sel!(volume:)];
         let _: () = msg_send![&*content, addSubview: &*slider];
+        // Equal visible gaps to the language pills and the slider's track.
+        let _: () = msg_send![&*button, setFrame: rect(123., 54.5, 54., 54.)];
         let player: Obj = msg_send![class!(AVPlayer), new];
         let _: () = msg_send![&*player, setVolume: volume as f32];
         let (commands, updates) = metadata_worker(language);
