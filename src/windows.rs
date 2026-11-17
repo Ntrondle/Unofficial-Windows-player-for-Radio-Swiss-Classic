@@ -1108,7 +1108,7 @@ pub fn run() {
                         "windows-smoke-report.json",
                         serde_json::to_vec_pretty(&report).unwrap(),
                     );
-                    return std::process::exit(1);
+                    std::process::exit(1);
                 }
                 let message = wide(&format!("Could not start Radio Swiss Classic:\n{error}"));
                 MessageBoxW(
