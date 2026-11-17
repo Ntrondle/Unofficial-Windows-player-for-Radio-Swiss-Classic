@@ -1,11 +1,11 @@
 //! AppKit and AVPlayer stay on the main thread; one bounded worker polls metadata.
 //! The native boundary uses objc2's retained objects and checked message signatures.
+use crate::radio::{parse_track, request_body, Track, CHANNELS, ENDPOINT, MAX_METADATA_BYTES};
 use objc2::rc::{autoreleasepool, Allocated, Retained};
 use objc2::runtime::{AnyObject, Bool};
 use objc2::{class, define_class, msg_send, sel, DefinedClass, MainThreadOnly};
 use objc2_core_graphics::CGColor;
 use objc2_foundation::{MainThreadMarker, NSObject, NSPoint, NSRect, NSSize, NSString};
-use serde::Deserialize;
 use std::cell::RefCell;
 use std::sync::mpsc::{self, Receiver, SyncSender};
 use std::time::{Duration, Instant};
@@ -16,31 +16,13 @@ extern "C" {}
 extern "C" {}
 
 type Obj = Retained<AnyObject>;
-const ENDPOINT: &str = "https://ssatr.playlist-api.deliver.media/graphql";
-const CHANNELS: [(&str, &str, &str); 3] = [
-    ("de", "0191e9e4-ffc8-782b-8ace-6604e0d6f2dc", "TitleDE"),
-    ("fr", "0191e9e5-213d-705e-b520-cee967358e6f", "TitleFR"),
-    ("it", "0191e9e5-3db3-7deb-ae10-48c24845852b", "TitleIT"),
-];
-
-#[derive(Debug, Default, Deserialize)]
-struct Track {
-    #[serde(default)]
-    title: Option<String>,
-    #[serde(default)]
-    artist: Option<String>,
-}
 struct Update {
     language: usize,
     result: Result<Track, String>,
 }
 
 fn fetch_track(client: &mut curl::easy::Easy, language: usize) -> Result<Track, String> {
-    let (_, channel, field) = CHANNELS[language];
-    let query = format!("query ($chan: String) {{ channel(id: $chan) {{ playingnow {{ current {{ metadata {{ artist title: {field} }} }} }} }} }}");
-    let body =
-        serde_json::to_vec(&serde_json::json!({"query": query, "variables": {"chan": channel}}))
-            .map_err(|e| e.to_string())?;
+    let body = request_body(language)?;
     let mut response = Vec::with_capacity(1024);
     let mut perform = || -> Result<(), curl::Error> {
         client.url(ENDPOINT)?;
@@ -53,7 +35,7 @@ fn fetch_track(client: &mut curl::easy::Easy, language: usize) -> Result<Track, 
         client.http_headers(headers)?;
         let mut transfer = client.transfer();
         transfer.write_function(|data| {
-            if response.len() + data.len() > 256 * 1024 {
+            if response.len() + data.len() > MAX_METADATA_BYTES {
                 return Ok(0);
             }
             response.extend_from_slice(data);
@@ -62,12 +44,7 @@ fn fetch_track(client: &mut curl::easy::Easy, language: usize) -> Result<Track, 
         transfer.perform()
     };
     perform().map_err(|e| e.to_string())?;
-    let json: serde_json::Value = serde_json::from_slice(&response).map_err(|e| e.to_string())?;
-    let metadata = json
-        .pointer("/data/channel/playingnow/current/metadata")
-        .filter(|value| value.is_object())
-        .ok_or("Track information unavailable")?;
-    serde_json::from_value(metadata.clone()).map_err(|e| e.to_string())
+    parse_track(&response)
 }
 
 fn metadata_worker(initial: usize) -> (SyncSender<usize>, Receiver<Update>) {
@@ -97,7 +74,7 @@ fn metadata_worker(initial: usize) -> (SyncSender<usize>, Receiver<Update>) {
 }
 
 struct State {
-    app: Obj,
+    _app: Obj,
     _window: Obj,
     player: Obj,
     button: Obj,
@@ -290,13 +267,16 @@ define_class!(
         fn tick(&self, _timer: &AnyObject) {
             if let Some(state) = self.ivars().borrow_mut().as_mut() { unsafe { state.tick(); } }
         }
+        #[unsafe(method(applicationShouldTerminateAfterLastWindowClosed:))]
+        fn should_terminate_after_last_window_closed(&self, _sender: &AnyObject) -> Bool {
+            Bool::YES
+        }
+        // No terminate: here — AppKit closes windows again during termination, and a
+        // re-entrant call would double-borrow the ivars and abort (panic = "abort").
         #[unsafe(method(windowWillClose:))]
         fn window_will_close(&self, _notification: &AnyObject) {
             if let Some(state) = self.ivars().borrow_mut().as_mut() {
-                unsafe {
-                    state.stop();
-                    let _: () = msg_send![&*state.app, terminate: std::ptr::null::<AnyObject>()];
-                }
+                unsafe { state.stop(); }
             }
         }
     }
@@ -522,7 +502,7 @@ pub fn run() {
         let (commands, updates) = metadata_worker(language);
         let smoke = std::env::args().any(|arg| arg == "--smoke-test");
         let mut state = State {
-            app: app.clone(),
+            _app: app.clone(),
             _window: window.clone(),
             player,
             button,
@@ -551,6 +531,8 @@ pub fn run() {
         }
         *controller.ivars().borrow_mut() = Some(state);
         let _: () = msg_send![&*window, setDelegate: &*controller];
+        // applicationShouldTerminateAfterLastWindowClosed: is read from the app delegate.
+        let _: () = msg_send![&*app, setDelegate: &*controller];
         let timer: Obj = msg_send![class!(NSTimer), timerWithTimeInterval: 1f64, target: &*controller,
             selector: sel!(tick:), userInfo: std::ptr::null::<AnyObject>(), repeats: Bool::YES];
         let _: () = msg_send![&*timer, setTolerance: 0.2f64];

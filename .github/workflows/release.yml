@@ -2,43 +2,46 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    tags: ['v*']
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            build-args: --win
-            artifact: dist/RadioSwissClassicPlayer-Setup-*.exe
-    runs-on: ${{ matrix.os }}
+  native-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npx electron-builder ${{ matrix.build-args }} --publish never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-
-      - name: Upload artifacts to GitHub Release
-        uses: softprops/action-gh-release@v2
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --locked -- -D warnings
+      - run: cargo test --locked
+      - name: Install installer compiler
+        run: choco install innosetup --no-progress -y
+      - name: Build native executable and installer
+        run: ./scripts/build-windows.ps1
+      - name: Check native UI and live metadata
+        run: ./scripts/test-windows.ps1
+      - name: Check playback if an audio endpoint is available
+        continue-on-error: true
+        run: ./scripts/test-windows.ps1 -Playback
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          files: ${{ matrix.artifact }}
+          name: native-windows
+          path: dist/*
+          if-no-files-found: error
+      - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            dist/RadioSwissClassicPlayer-Setup-*.exe
+            dist/RadioSwissClassic-native-windows-x64.zip
           fail_on_unmatched_files: true
           generate_release_notes: true
 
@@ -52,11 +55,17 @@ jobs:
           targets: aarch64-apple-darwin, x86_64-apple-darwin
       - run: cargo fmt --check
       - run: cargo clippy --locked -- -D warnings
+      - run: cargo test --locked
       - name: Build native universal app
         run: scripts/build-macos.sh --universal
       - name: Package
         run: ditto -c -k --sequesterRsrc --keepParent "dist/Radio Swiss Classic.app" dist/RadioSwissClassic-native-universal.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-macos
+          path: dist/*.zip
       - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: dist/RadioSwissClassic-native-universal.zip
           fail_on_unmatched_files: true
